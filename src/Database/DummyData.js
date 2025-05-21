@@ -354,11 +354,11 @@ export const accounts = [
 
 // User profile data
 export const userProfile = {
-  name: "Alex Johnson",
-  email: "alex@example.com",
+  name: "Sachin Arora",
+  email: "sachin@example.com",
   avatar: null, // Placeholder for avatar image
-  plan: "Pro",
-  wordsRemaining: 125000,
+  plan: "Non Pro",
+  wordsRemaining: 12500,
   articlesPublished: 28,
-  accountCreated: "Jan 15, 2024"
+  accountCreated: "May 21, 2025"
 };
