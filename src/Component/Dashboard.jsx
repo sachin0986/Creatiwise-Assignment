@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, ChevronDown, Eye, MessageCircle, Menu } from "lucide-react";
+import { Search, ChevronDown, Eye, MessageCircle, Menu, X } from "lucide-react";
 import { 
   generatedArticles,
   publishedArticles,
@@ -476,9 +476,18 @@ export default function Dashboard() {
       {/* Desktop Sidebar */}
       {renderSidebar(false)}
 
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={`fixed inset-0 bg-gray-600 transition-opacity md:hidden ${
+          isMobileSidebarOpen ? 'opacity-25 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={toggleMobileSidebar}
+        style={{ zIndex: 40 }}
+      ></div>
+
       {/* Mobile Sidebar */}
       <div 
-        className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white transition transform md:hidden ${
+        className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white transition transform md:hidden shadow-xl ${
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ zIndex: 50 }}
@@ -489,9 +498,9 @@ export default function Dashboard() {
             <span className="font-bold text-xl">abun</span>
             <button 
               onClick={toggleMobileSidebar}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
             >
-              <Menu className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -565,19 +574,22 @@ export default function Dashboard() {
         {/* Mobile header with menu button */}
         <div className="sticky top-0 z-40 flex items-center justify-between bg-white p-4 border-b border-gray-200 md:hidden">
           <h1 className="text-xl font-bold">Articles</h1>
-          <button 
-            className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onClick={toggleMobileSidebar}
-            aria-label="Toggle menu"
-          >
-            <Menu className="h-5 w-5 text-gray-600" />
-          </button>
+          {!isMobileSidebarOpen && (
+            <button 
+              className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={toggleMobileSidebar}
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-5 w-5 text-gray-600" />
+            </button>
+          )}
         </div>
 
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-3 md:p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            {/* Remove duplicate heading on mobile */}
+            <div className="hidden md:flex md:flex-row md:items-center md:justify-between mb-6">
               <h1 className="text-2xl font-bold">Articles</h1>
             </div>
             
