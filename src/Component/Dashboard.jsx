@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, ChevronDown, Eye, MessageCircle, Menu } from "lucide-react";
-import { articles, navigation, tabOptions, paginationOptions } from "../Database/DummyData";
+import { 
+  generatedArticles,
+  publishedArticles,
+  scheduledArticles,
+  archivedArticles,
+  navigation,
+  tabOptions, 
+  paginationOptions,
+  userProfile,
+  accounts
+} from "../Database/DummyData";
 import { Dropdown, Checkbox, Avatar, TableSkeleton, EmptyState } from "../Component/Component";
 
 // Improved Select Component with proper handling for mobile
@@ -75,7 +85,16 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredArticles, setFilteredArticles] = useState(articles);
+  
+  // Initialize articles data from DummyData.js based on tab
+  const articlesMap = {
+    generated: generatedArticles,
+    published: publishedArticles,
+    scheduled: scheduledArticles,
+    archived: archivedArticles
+  };
+  
+  const [filteredArticles, setFilteredArticles] = useState(articlesMap[selectedTab] || []);
   const [displayedArticles, setDisplayedArticles] = useState([]);
   const [sidebarExpanded, setSidebarExpanded] = useState({ Articles: true });
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
@@ -97,13 +116,18 @@ export default function Dashboard() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Update filtered articles when tab changes
+  useEffect(() => {
+    setFilteredArticles(articlesMap[selectedTab] || []);
+  }, [selectedTab]);
+
   // Filter articles based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredArticles(articles);
+      setFilteredArticles(articlesMap[selectedTab] || []);
     } else {
       const lowercaseQuery = searchQuery.toLowerCase();
-      const filtered = articles.filter(
+      const filtered = (articlesMap[selectedTab] || []).filter(
         article => 
           article.title.toLowerCase().includes(lowercaseQuery) ||
           article.keyword.toLowerCase().includes(lowercaseQuery)
@@ -111,7 +135,7 @@ export default function Dashboard() {
       setFilteredArticles(filtered);
     }
     setCurrentPage(1); // Reset to first page when search changes
-  }, [searchQuery]);
+  }, [searchQuery, selectedTab]);
 
   // Update displayed articles whenever filtered articles, page, or entries per page changes
   useEffect(() => {
@@ -160,7 +184,7 @@ export default function Dashboard() {
     setSelectAll(!selectAll);
   };
 
-  // Handle entries per page change - now fixed to properly update the state
+  // Handle entries per page change
   const handleEntriesPerPageChange = (newValue) => {
     const numValue = parseInt(newValue, 10);
     setEntriesPerPage(numValue);
@@ -230,7 +254,7 @@ export default function Dashboard() {
           <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex-shrink-0"></div>
           {(isSidebarOpen || isMobile) && (
             <>
-              <span className="text-sm font-medium truncate">amazon.com</span>
+              <span className="text-sm font-medium truncate">{accounts[0].name}</span>
               <ChevronDown className="h-4 w-4 ml-auto" />
             </>
           )}
@@ -278,8 +302,172 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      {/* User Profile Section */}
+      {(isSidebarOpen || isMobile) && (
+        <div className="p-3 border-t border-gray-200">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-2">
+              {userProfile.avatar || userProfile.name.charAt(0)}
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium">{userProfile.name}</div>
+              <div className="text-xs text-gray-500">{userProfile.plan} Plan</div>
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-gray-500">
+            <div>{userProfile.wordsRemaining.toLocaleString()} words remaining</div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  // Custom rendering for each tab's specific fields
+  const renderArticleRow = (article) => {
+    const commonCells = (
+      <>
+        <td className="px-2 md:px-4 py-3">
+          <Checkbox
+            checked={selectedRows.includes(article.id)}
+            onChange={() => handleRowSelection(article.id)}
+          />
+        </td>
+        <td className="px-2 md:px-4 py-3">
+          <div className="truncate max-w-xs md:max-w-md">
+            {article.title}
+          </div>
+          {/* Mobile-only info */}
+          <div className="md:hidden text-xs text-gray-500 mt-1">
+            {article.keyword} • {article.words} words • {article.createdOn}
+          </div>
+        </td>
+        <td className="hidden md:table-cell px-4 py-3">{article.keyword}</td>
+        <td className="hidden md:table-cell px-4 py-3">{article.words}</td>
+      </>
+    );
+
+    switch (article.status) {
+      case "published":
+        return (
+          <tr key={article.id} className="border-b border-gray-200 hover:bg-gray-50">
+            {commonCells}
+            <td className="hidden md:table-cell px-4 py-3">{article.publishedOn}</td>
+            <td className="hidden md:table-cell px-4 py-3">{article.views}</td>
+            <td className="hidden md:table-cell px-4 py-3">{article.backlinks}</td>
+            <td className="px-2 md:px-4 py-3">
+              <button className="px-2 md:px-3 py-1 text-blue-500 border border-blue-500 rounded-md hover:bg-blue-50 flex items-center">
+                <Eye className="h-4 w-4 mr-1 md:mr-2" /> 
+                <span className="hidden md:inline">View</span>
+              </button>
+            </td>
+          </tr>
+        );
+      case "scheduled":
+        return (
+          <tr key={article.id} className="border-b border-gray-200 hover:bg-gray-50">
+            {commonCells}
+            <td className="hidden md:table-cell px-4 py-3">{article.createdOn}</td>
+            <td className="hidden md:table-cell px-4 py-3">{article.scheduledFor}</td>
+            <td className="px-2 md:px-4 py-3">
+              <button className="px-2 md:px-3 py-1 text-blue-500 border border-blue-500 rounded-md hover:bg-blue-50 flex items-center">
+                <Eye className="h-4 w-4 mr-1 md:mr-2" /> 
+                <span className="hidden md:inline">View</span>
+              </button>
+            </td>
+          </tr>
+        );
+      case "archived":
+        return (
+          <tr key={article.id} className="border-b border-gray-200 hover:bg-gray-50">
+            {commonCells}
+            <td className="hidden md:table-cell px-4 py-3">{article.createdOn}</td>
+            <td className="hidden md:table-cell px-4 py-3">{article.archivedOn}</td>
+            <td className="px-2 md:px-4 py-3">
+              <button className="px-2 md:px-3 py-1 text-blue-500 border border-blue-500 rounded-md hover:bg-blue-50 flex items-center">
+                <Eye className="h-4 w-4 mr-1 md:mr-2" /> 
+                <span className="hidden md:inline">View</span>
+              </button>
+            </td>
+          </tr>
+        );
+      default: // generated
+        return (
+          <tr key={article.id} className="border-b border-gray-200 hover:bg-gray-50">
+            {commonCells}
+            <td className="hidden md:table-cell px-4 py-3">{article.createdOn}</td>
+            <td className="px-2 md:px-4 py-3">
+              <button className="px-2 md:px-3 py-1 text-blue-500 border border-blue-500 rounded-md hover:bg-blue-50 flex items-center">
+                <Eye className="h-4 w-4 mr-1 md:mr-2" /> 
+                <span className="hidden md:inline">View</span>
+              </button>
+            </td>
+            <td className="px-2 md:px-4 py-3">
+              <Avatar className="h-8 w-8 bg-blue-100 text-blue-500">
+                <span className="text-xs">AI</span>
+              </Avatar>
+            </td>
+          </tr>
+        );
+    }
+  };
+
+  // Custom rendering for column headers based on tab
+  const renderTableHeaders = () => {
+    const commonHeaders = (
+      <>
+        <th className="px-2 md:px-4 py-3 text-left">
+          <Checkbox 
+            checked={selectAll} 
+            onChange={handleSelectAll} 
+          />
+        </th>
+        <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Article Title</th>
+        <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Keyword [Traffic]</th>
+        <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Words</th>
+      </>
+    );
+
+    switch (selectedTab) {
+      case "published":
+        return (
+          <tr className="bg-gray-50 border-b border-gray-200">
+            {commonHeaders}
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Published On</th>
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Views</th>
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Backlinks</th>
+            <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Action</th>
+          </tr>
+        );
+      case "scheduled":
+        return (
+          <tr className="bg-gray-50 border-b border-gray-200">
+            {commonHeaders}
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Created On</th>
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Scheduled For</th>
+            <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Action</th>
+          </tr>
+        );
+      case "archived":
+        return (
+          <tr className="bg-gray-50 border-b border-gray-200">
+            {commonHeaders}
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Created On</th>
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Archived On</th>
+            <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Action</th>
+          </tr>
+        );
+      default: // generated
+        return (
+          <tr className="bg-gray-50 border-b border-gray-200">
+            {commonHeaders}
+            <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Created On</th>
+            <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Action</th>
+            <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Publish</th>
+          </tr>
+        );
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -326,10 +514,15 @@ export default function Dashboard() {
               </div>
               
               <div className="pt-4 md:pt-6">
-                {selectedTab === "generated" && (
-                  <>
-                    {/* Search and table */}
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Table content - shows skeleton while loading */}
+                {isLoading ? (
+                  <div className="bg-white rounded-lg shadow">
+                    <TableSkeleton />
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow overflow-hidden">
+                    {/* Search bar - only show for non-empty tabs */}
+                    {filteredArticles.length > 0 && (
                       <div className="p-3 md:p-4 border-b border-gray-200">
                         <div className="relative">
                           <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -342,77 +535,25 @@ export default function Dashboard() {
                           />
                         </div>
                       </div>
-                      
-                      {/* Table content - shows skeleton while loading */}
-                      {isLoading ? (
-                        <TableSkeleton />
-                      ) : (
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead>
-                              <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-2 md:px-4 py-3 text-left">
-                                  <Checkbox 
-                                    checked={selectAll} 
-                                    onChange={handleSelectAll} 
-                                  />
-                                </th>
-                                <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Article Title</th>
-                                <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Keyword [Traffic]</th>
-                                <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Words</th>
-                                <th className="hidden md:table-cell px-4 py-3 text-left font-medium text-gray-600">Created On</th>
-                                <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Action</th>
-                                <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Publish</th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {displayedArticles.length > 0 ? (
-                                displayedArticles.map((article) => (
-                                  <tr key={article.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                    <td className="px-2 md:px-4 py-3">
-                                      <Checkbox
-                                        checked={selectedRows.includes(article.id)}
-                                        onChange={() => handleRowSelection(article.id)}
-                                      />
-                                    </td>
-                                    <td className="px-2 md:px-4 py-3">
-                                      <div className="truncate max-w-xs md:max-w-md">
-                                        {article.title}
-                                      </div>
-                                      {/* Mobile-only info */}
-                                      <div className="md:hidden text-xs text-gray-500 mt-1">
-                                        {article.keyword} • {article.words} words • {article.createdOn}
-                                      </div>
-                                    </td>
-                                    <td className="hidden md:table-cell px-4 py-3">{article.keyword}</td>
-                                    <td className="hidden md:table-cell px-4 py-3">{article.words}</td>
-                                    <td className="hidden md:table-cell px-4 py-3">{article.createdOn}</td>
-                                    <td className="px-2 md:px-4 py-3">
-                                      <button className="px-2 md:px-3 py-1 text-blue-500 border border-blue-500 rounded-md hover:bg-blue-50 flex items-center">
-                                        <Eye className="h-4 w-4 mr-1 md:mr-2" /> 
-                                        <span className="hidden md:inline">View</span>
-                                      </button>
-                                    </td>
-                                    <td className="px-2 md:px-4 py-3">
-                                      <Avatar className="h-8 w-8 bg-blue-100 text-blue-500">
-                                        <span className="text-xs">AI</span>
-                                      </Avatar>
-                                    </td>
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
-                                    No articles found matching your search
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                      
-                      {/* Pagination - Improved for better mobile responsiveness */}
+                    )}
+                    
+                    {filteredArticles.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead>
+                            {renderTableHeaders()}
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {displayedArticles.map(article => renderArticleRow(article))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <EmptyState tabName={selectedTab} />
+                    )}
+                    
+                    {/* Pagination - only show for non-empty tabs */}
+                    {filteredArticles.length > 0 && (
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-2 md:px-4 py-3 border-t border-gray-200">
                         <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4 md:mb-0">
                           <span>Total {filteredArticles.length} Article{filteredArticles.length !== 1 ? 's' : ''}</span>
@@ -453,20 +594,8 @@ export default function Dashboard() {
                           </button>
                         </div>
                       </div>
-                    </div>
-                  </>
-                )}
-                
-                {(selectedTab === "published" || selectedTab === "scheduled" || selectedTab === "archived") && (
-                  <>
-                    {isLoading ? (
-                      <div className="p-6 bg-white rounded-lg shadow">
-                        <TableSkeleton />
-                      </div>
-                    ) : (
-                      <EmptyState tabName={selectedTab} />
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>
