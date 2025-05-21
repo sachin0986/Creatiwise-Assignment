@@ -13,12 +13,10 @@ import {
 } from "../Database/DummyData";
 import { Dropdown, Checkbox, Avatar, TableSkeleton, EmptyState } from "../Component/Component";
 
-// Improved Select Component with proper handling for mobile
 const Select = ({ value, options, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -74,7 +72,6 @@ const Select = ({ value, options, onChange }) => {
   );
 };
 
-// Main Dashboard Component
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -86,7 +83,6 @@ export default function Dashboard() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Initialize articles data from DummyData.js based on tab
   const articlesMap = {
     generated: generatedArticles,
     published: publishedArticles,
@@ -99,7 +95,7 @@ export default function Dashboard() {
   const [sidebarExpanded, setSidebarExpanded] = useState({ Articles: true });
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
 
-  // Track window size for responsive adjustments
+
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -111,17 +107,15 @@ export default function Dashboard() {
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Initialize on load
+    handleResize(); 
     
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Update filtered articles when tab changes
   useEffect(() => {
     setFilteredArticles(articlesMap[selectedTab] || []);
   }, [selectedTab]);
 
-  // Filter articles based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredArticles(articlesMap[selectedTab] || []);
@@ -134,16 +128,15 @@ export default function Dashboard() {
       );
       setFilteredArticles(filtered);
     }
-    setCurrentPage(1); // Reset to first page when search changes
+    setCurrentPage(1); 
   }, [searchQuery, selectedTab]);
 
-  // Update displayed articles whenever filtered articles, page, or entries per page changes
   useEffect(() => {
     const startIndex = (currentPage - 1) * entriesPerPage;
     const endIndex = startIndex + entriesPerPage;
     setDisplayedArticles(filteredArticles.slice(startIndex, endIndex));
     
-    // Reset selection when displayed items change
+
     setSelectedRows([]);
     setSelectAll(false);
   }, [filteredArticles, currentPage, entriesPerPage]);
@@ -184,24 +177,21 @@ export default function Dashboard() {
     setSelectAll(!selectAll);
   };
 
-  // Handle entries per page change
+
   const handleEntriesPerPageChange = (newValue) => {
     const numValue = parseInt(newValue, 10);
     setEntriesPerPage(numValue);
-    setCurrentPage(1); // Reset to first page when changing entries per page
+    setCurrentPage(1); 
   };
 
-  // Calculate total pages
   const totalPages = Math.ceil(filteredArticles.length / entriesPerPage);
 
-  // Handle page navigation
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
-  // Simulate loading when changing tabs
   const handleTabChange = (value) => {
     if (selectedTab === value) return;
     
@@ -210,13 +200,11 @@ export default function Dashboard() {
     setSelectedRows([]);
     setSelectAll(false);
     
-    // Simulate API call with minimal loading time
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
   };
 
-  // Render the sidebar for both mobile and desktop
   const renderSidebar = (isMobile = false) => (
     <div 
       className={`bg-white border-r border-gray-200 ${
@@ -227,7 +215,7 @@ export default function Dashboard() {
           : isSidebarOpen ? 'w-64' : 'w-16'
       } transition-all duration-300 flex flex-col h-full ${isMobile ? '' : 'hidden md:flex'}`}
     >
-      {/* Overlay for mobile sidebar */}
+
       {isMobile && isMobileSidebarOpen && (
         <div 
           className="fixed inset-0 bg-gray-600 bg-opacity-75 z-40"
@@ -235,7 +223,6 @@ export default function Dashboard() {
         ></div>
       )}
 
-      {/* Logo */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           {(isSidebarOpen || isMobile) && <span className="font-bold text-xl">abun</span>}
@@ -248,7 +235,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Account Selector */}
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center space-x-2 bg-gray-100 rounded-md p-2">
           <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex-shrink-0"></div>
@@ -261,7 +247,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Navigation */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <div className="py-2">
           {navigation.map((item, index) => (
@@ -303,7 +288,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* User Profile Section */}
+
       {(isSidebarOpen || isMobile) && (
         <div className="p-3 border-t border-gray-200">
           <div className="flex items-center">
@@ -323,7 +308,7 @@ export default function Dashboard() {
     </div>
   );
 
-  // Custom rendering for each tab's specific fields
+
   const renderArticleRow = (article) => {
     const commonCells = (
       <>
@@ -337,7 +322,7 @@ export default function Dashboard() {
           <div className="truncate max-w-xs md:max-w-md">
             {article.title}
           </div>
-          {/* Mobile-only info */}
+
           <div className="md:hidden text-xs text-gray-500 mt-1">
             {article.keyword} • {article.words} words • {article.createdOn}
           </div>
@@ -391,7 +376,7 @@ export default function Dashboard() {
             </td>
           </tr>
         );
-      default: // generated
+      default: 
         return (
           <tr key={article.id} className="border-b border-gray-200 hover:bg-gray-50">
             {commonCells}
@@ -412,7 +397,6 @@ export default function Dashboard() {
     }
   };
 
-  // Custom rendering for column headers based on tab
   const renderTableHeaders = () => {
     const commonHeaders = (
       <>
@@ -457,7 +441,7 @@ export default function Dashboard() {
             <th className="px-2 md:px-4 py-3 text-left font-medium text-gray-600">Action</th>
           </tr>
         );
-      default: // generated
+      default: 
         return (
           <tr className="bg-gray-50 border-b border-gray-200">
             {commonHeaders}
@@ -471,21 +455,21 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Desktop Sidebar */}
+
       {renderSidebar(false)}
 
-      {/* Mobile Sidebar - rendered conditionally */}
+
       {renderSidebar(true)}
 
-      {/* Main Content */}
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Main content area */}
+  
         <main className="flex-1 overflow-y-auto p-3 md:p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
               <h1 className="text-2xl font-bold">Articles</h1>
               
-              {/* Mobile sidebar toggle */}
+         
               <button 
                 className="md:hidden bg-white p-2 rounded-md shadow-sm mt-2"
                 onClick={toggleMobileSidebar}
@@ -495,7 +479,7 @@ export default function Dashboard() {
               </button>
             </div>
             
-            {/* Tabs */}
+ 
             <div className="w-full mb-6">
               <div className="w-full flex overflow-x-auto scrollbar-hide border-b border-gray-200 pb-0 bg-transparent gap-2 md:gap-4">
                 {tabOptions.map((tab) => (
@@ -514,14 +498,14 @@ export default function Dashboard() {
               </div>
               
               <div className="pt-4 md:pt-6">
-                {/* Table content - shows skeleton while loading */}
+ 
                 {isLoading ? (
                   <div className="bg-white rounded-lg shadow">
                     <TableSkeleton />
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow overflow-hidden">
-                    {/* Search bar - only show for non-empty tabs */}
+           
                     {filteredArticles.length > 0 && (
                       <div className="p-3 md:p-4 border-b border-gray-200">
                         <div className="relative">
@@ -552,7 +536,7 @@ export default function Dashboard() {
                       <EmptyState tabName={selectedTab} />
                     )}
                     
-                    {/* Pagination - only show for non-empty tabs */}
+                  
                     {filteredArticles.length > 0 && (
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-2 md:px-4 py-3 border-t border-gray-200">
                         <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4 md:mb-0">
@@ -603,7 +587,6 @@ export default function Dashboard() {
         </main>
       </div>
       
-      {/* Chat Support Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <button className="bg-green-500 hover:bg-green-600 text-white rounded-full p-3 md:p-4 shadow-lg flex items-center justify-center">
           <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />

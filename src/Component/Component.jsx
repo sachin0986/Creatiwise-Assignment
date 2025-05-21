@@ -53,25 +53,30 @@ export const Avatar = ({ children, className = "" }) => {
 // Select Component
 export const Select = ({ value, options, onChange }) => {
   return (
-    <Dropdown
-      trigger={
-        <button className="ml-2 px-3 py-1 border border-gray-300 rounded-md flex items-center text-sm">
-          {value} <ChevronDown className="h-4 w-4 ml-1" />
-        </button>
-      }
-    >
-      <div className="py-1">
-        {options.map((option) => (
-          <button 
-            key={option} 
-            className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-            onClick={() => onChange(option)}
-          >
-            {option}
-          </button>
-        ))}
+    <div className="relative inline-block">
+      <button 
+        className="ml-2 px-3 py-1 border border-gray-300 rounded-md flex items-center text-sm bg-white"
+        onClick={(e) => e.currentTarget.nextElementSibling.classList.toggle('hidden')}
+      >
+        {value} <ChevronDown className="h-4 w-4 ml-1" />
+      </button>
+      <div className="hidden absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg">
+        <div className="py-1">
+          {options.map((option) => (
+            <button 
+              key={option} 
+              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              onClick={(e) => {
+                onChange(option);
+                e.currentTarget.parentElement.parentElement.classList.add('hidden');
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </div>
-    </Dropdown>
+    </div>
   );
 };
 
